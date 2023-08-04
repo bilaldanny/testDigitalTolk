@@ -35,16 +35,17 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        if($user_id = $request->get('user_id')) {
-
-            $response = $this->repository->getUsersJobs($user_id);
-
+        $user = $request->user(); // or you can also use auth()->user() to get authenticated user;
+        $response = null;
+        if (!$user) {
+            return response(['error' => 'Unauthorized'], 401);
         }
-        elseif($request->__authenticatedUser->user_type == env('ADMIN_ROLE_ID') || $request->__authenticatedUser->user_type == env('SUPERADMIN_ROLE_ID'))
-        {
+
+        if($user->id = $request->get('user_id')) {
+            $response = $this->repository->getUsersJobs($user->id);
+        }elseif($user->user_type == env('ADMIN_ROLE_ID') || $user->user_type == env('SUPERADMIN_ROLE_ID')){
             $response = $this->repository->getAll($request);
         }
-
         return response($response);
     }
 
@@ -55,7 +56,6 @@ class BookingController extends Controller
     public function show($id)
     {
         $job = $this->repository->with('translatorJobRel.user')->find($id);
-
         return response($job);
     }
 
@@ -66,8 +66,9 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
+        $user = $request->user(); // or you can also use auth()->user() to get authenticated user;
 
-        $response = $this->repository->store($request->__authenticatedUser, $data);
+        $response = $this->repository->store($user, $data);
 
         return response($response);
 
@@ -80,9 +81,9 @@ class BookingController extends Controller
      */
     public function update($id, Request $request)
     {
-        $data = $request->all();
-        $cuser = $request->__authenticatedUser;
-        $response = $this->repository->updateJob($id, array_except($data, ['_token', 'submit']), $cuser);
+        $data = $request->except('_token', 'submit');
+        $cuser = $request->user(); // or you can also use auth()->user() to get authenticated user
+        $response = $this->repository->updateJob($id, $data, $cuser);
 
         return response($response);
     }
@@ -123,7 +124,7 @@ class BookingController extends Controller
     public function acceptJob(Request $request)
     {
         $data = $request->all();
-        $user = $request->__authenticatedUser;
+        $user = $request->user(); // or you can also use auth()->user() to get authenticated user;
 
         $response = $this->repository->acceptJob($data, $user);
 
@@ -133,7 +134,7 @@ class BookingController extends Controller
     public function acceptJobWithId(Request $request)
     {
         $data = $request->get('job_id');
-        $user = $request->__authenticatedUser;
+        $user = $request->user(); // or you can also use auth()->user() to get authenticated user;
 
         $response = $this->repository->acceptJobWithId($data, $user);
 
@@ -147,7 +148,7 @@ class BookingController extends Controller
     public function cancelJob(Request $request)
     {
         $data = $request->all();
-        $user = $request->__authenticatedUser;
+        $user = $request->user(); // or you can also use auth()->user() to get authenticated user;
 
         $response = $this->repository->cancelJobAjax($data, $user);
 
@@ -185,7 +186,7 @@ class BookingController extends Controller
     public function getPotentialJobs(Request $request)
     {
         $data = $request->all();
-        $user = $request->__authenticatedUser;
+        $user = $request->user(); // or you can also use auth()->user() to get authenticated user;
 
         $response = $this->repository->getPotentialJobs($user);
 

@@ -19,14 +19,16 @@ class TeHelper
 
     public static function getUsermeta($user_id, $key = false)
     {
-        return $user = UserMeta::where('user_id', $user_id)->first()->$key;
+        $user = UserMeta::where('user_id', $user_id)->first();
         if (!$key)
             return $user->usermeta()->get()->all();
         else {
             $meta = $user->usermeta()->where('key', '=', $key)->get()->first();
-            if ($meta)
+            if ($meta){
                 return $meta->value;
-            else return '';
+            }else{
+                return '';
+            }
         }
     }
 
@@ -42,11 +44,19 @@ class TeHelper
 
     public static function willExpireAt($due_time, $created_at)
     {
-        $due_time = Carbon::parse($due_time);
-        $created_at = Carbon::parse($created_at);
+        if(isset($due_time)){
+            $due_time = Carbon::parse($due_time);
+        }else{
+            $due_time = Carbon::now();
+        }
+
+        if(isset($created_at)){
+            $created_at = Carbon::parse($created_at);
+        }else{
+            $created_at = Carbon::now();
+        }
 
         $difference = $due_time->diffInHours($created_at);
-
 
         if($difference <= 90)
             $time = $due_time;
